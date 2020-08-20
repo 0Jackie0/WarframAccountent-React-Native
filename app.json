@@ -1,0 +1,13 @@
+{
+  "name": "WarframeAccountant",
+  "displayName": "WarframeAccountant",
+  "expo": {
+    "name": "WarframeAccountant",
+    "slug": "WarframeAccountant",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "description": "persional project"
+  }
+}
