@@ -31,8 +31,8 @@ export default class ItemList extends Component
             editTarget: null,
             addNew: true,
             filterId: "-1",
-            orderId: "1",
-            createSellString: false
+            orderId: 1,
+            createSellString: false,
         }
 
         this.addOneItem = this.addOneItem.bind();
@@ -181,16 +181,16 @@ export default class ItemList extends Component
     {
         const serverCommunication = new ServerCommunication();
 
-        if(this.state.orderId === "1")
+        if(this.state.orderId.toString() === "1")
         {
-            if(typeId === "-1")
+            if(typeId.toString() === "-1")
             {
                 serverCommunication.itemCommunication().getAllItemName().then(newItemList =>
                     {
                         this.setState(
                             {
                                 itemList: newItemList,
-                                filterId: typeId
+                                filterId: typeId,
                             }
                         )
                 })
@@ -210,7 +210,7 @@ export default class ItemList extends Component
         }
         else
         {
-            if(typeId === "-1")
+            if(typeId.toString() === "-1")
             {
                 serverCommunication.itemCommunication().getAllItemQuantity().then(newItemList =>
                     {
@@ -239,9 +239,9 @@ export default class ItemList extends Component
     {
         const serverCommunication = new ServerCommunication();
 
-        if(orderId === "1")
+        if(orderId.toString() === "1")
         {
-            if(this.state.filterId === "-1")
+            if(this.state.filterId.toString() === "-1")
             {
                 serverCommunication.itemCommunication().getAllItemName().then(newItemList =>
                     {
@@ -268,7 +268,7 @@ export default class ItemList extends Component
         }
         else
         {
-            if(this.state.filterId === "-1")
+            if(this.state.filterId.toString() === "-1")
             {
                 serverCommunication.itemCommunication().getAllItemQuantity().then(newItemList =>
                     {
@@ -297,9 +297,9 @@ export default class ItemList extends Component
     {
         const serverCommunication = new ServerCommunication();
 
-        if(this.state.orderId === "1")
+        if(this.state.orderId.toString() === "1")
         {
-            if(this.state.filterId === "-1")
+            if(this.state.filterId.toString() === "-1")
             {
                 serverCommunication.itemCommunication().getAllItemName().then(newItemList =>
                     {
@@ -324,7 +324,7 @@ export default class ItemList extends Component
         }
         else
         {
-            if(this.state.filterId === "-1")
+            if(this.state.filterId.toString() === "-1")
             {
                 serverCommunication.itemCommunication().getAllItemQuantity().then(newItemList =>
                     {
@@ -525,7 +525,7 @@ export default class ItemList extends Component
     render()
     {
         return(
-            <View style="itemListPageArea">
+            <View style={styles.itemListPageArea}>
 
                 {/* {this.state.createSellString === true ? 
                     <View style="sellStringCreationArea">
@@ -535,8 +535,8 @@ export default class ItemList extends Component
                     null
                 } */}
                 
-                <View style="selectionArea">
-                    {/* <ListSelection filterList={this.state.itemType} orderList={orderList} searchFunction={this.searchItem} addFunction={this.addNewItem} filterFunction={this.filterItemList} orderFunction={this.orderItemList} openSellString={this.openCLoseSellString}/> */}
+                <View style={styles.selectionArea}>
+                    <ListSelection filterList={this.state.itemType} orderList={orderList} filterValue={this.state.filterId} orderValue={this.state.orderId} searchFunction={this.searchItem} addFunction={this.addNewItem} filterFunction={this.filterItemList} orderFunction={this.orderItemList} openSellString={this.openCLoseSellString}/>
                 </View>
 
 
@@ -574,13 +574,22 @@ const styles = StyleSheet.create(
     {
         itemListPageArea:
         {
-            
+            marginLeft: 15,
+            marginRight: 15
+        },
+
+        selectionArea:
+        {
+        },
+
+        listHeaderArea:
+        {
+            marginBottom: 5
         },
 
         listContentArea:
         {
-            marginLeft: 15,
-            marginRight: 15
+            height: "87%"
         }
     }
 );

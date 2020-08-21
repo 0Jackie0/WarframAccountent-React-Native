@@ -8,6 +8,7 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "description": "persional project"
+    "description": "Warframe accountant Game Item management app",
+    "githubUrl": "https://github.com/0Jackie0/WarframAccountent-React-Native"
   }
 }
