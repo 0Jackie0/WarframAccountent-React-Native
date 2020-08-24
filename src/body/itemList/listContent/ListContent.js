@@ -10,30 +10,33 @@ export default function ListContent(props)
 {
   return (
     <View style={styles.itemAreaUp}>
-      <View style={styles.itemArea} onClick={() => {props.openEdit(props.item)}}>
+      <TouchableOpacity style="" activeOpacity={0.5} onPress={() => {props.navigationOption()}}>
+        <View style={styles.itemArea}>
           <View style="imageArea">
-              <Image style={styles.imageSize} source={ props.item.imageString !== "" ? "data:image/png;base64," + props.item.imageString : itemImage} alt="item" />
+            <Image style={styles.imageSize} source={ props.item.imageString !== "" ? "data:image/png;base64," + props.item.imageString : itemImage} alt="item" />
           </View>
 
-          <View style="itemInfoArea">
-                <View style={styles.horizontallyPlacemant}>
-                  <Text numberOfLines={1} style={[{flex: 1}, styles.tagStyle]}>{props.item.name}</Text>
-                </View>
+          <View style={styles.itemInfoArea}>
+            <View style={styles.horizontallyPlacemant}>
+              <Text numberOfLines={1} style={[{flex: 1}, styles.tagStyle]}>{props.item.name}</Text>
+            </View>
 
-              <View style={styles.horizontallyPlacemant}>
-                  <View style={styles.horizontallyPlacemant}><Text style={styles.tagStyle}>Quantity: </Text><Text>{props.item.quantity}</Text></View>
-                  <Text numberOfLines={1} style={{width: 120}}>{"  " + props.typeName.substring(0,3) + props.typeName.substring(8,props.typeName.lentgh)}</Text>
-              </View>
-                
-              <View style={styles.horizontallyPlacemant}>
-                  <Text style={styles.tagStyle}>Base Price: </Text><Text>{props.item.bprice}</Text>
-              </View>
+            <View style={styles.horizontallyPlacemant}>
+              <View style={styles.horizontallyPlacemant}><Text style={styles.tagStyle}>Quantity: </Text><Text>{props.item.quantity}</Text></View>
+              <Text numberOfLines={1} style={{width: 120}}>{"  " + props.typeName.substring(0,3) + props.typeName.substring(8,props.typeName.lentgh)}</Text>
+            </View>
+              
+            <View style={styles.horizontallyPlacemant}>
+              <Text style={styles.tagStyle}>Base Price: </Text><Text>{props.item.bprice}</Text>
+            </View>
 
-              <View style={styles.horizontallyPlacemant}>
-                  <Text style={styles.tagStyle} numberOfLines={1}>Expected Price: </Text><Text>{props.item.eprice}</Text>
-              </View>
+            <View style={styles.horizontallyPlacemant}>
+              <Text style={styles.tagStyle} numberOfLines={1}>Expected Price: </Text><Text>{props.item.eprice}</Text>
+            </View>
           </View>
-      </View>
+        </View>
+      </TouchableOpacity>
+
       <View style="itemFunctionArea">
         <TouchableOpacity style="" activeOpacity={0.5} onPress={() => {props.addFunction(props.item.itemId)}}>
           <Image source={upImage} style={styles.imageButtonSize}/>
@@ -57,7 +60,7 @@ const styles = StyleSheet.create(
       {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
       },
       itemArea:
       {
@@ -66,6 +69,12 @@ const styles = StyleSheet.create(
         justifyContent: "space-between",
         alignItems: "center"
       },
+
+      itemInfoArea:
+      {
+        marginLeft: 10
+      },
+
       itemFunctionArea:
       {
         width: "20%"

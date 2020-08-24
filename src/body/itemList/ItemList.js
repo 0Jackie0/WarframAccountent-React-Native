@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, View} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import Toast from 'react-native-easy-toast'
 
 import ServerCommunication from "../../communication/serverCommunication";
 import ListContent from "./listContent/ListContent";
@@ -20,9 +21,9 @@ const orderList = [
 ]
 export default class ItemList extends Component
 {
-    constructor()
+    constructor(props)
     {
-        super();
+        super(props);
 
         this.state = {
             itemList: [],
@@ -48,9 +49,21 @@ export default class ItemList extends Component
     {
         this.getItemTypeList();
         this.getItemList();
+
+        this._unsubscribe = this.props.navigation.addListener('focus', () => {
+            // do something
+            this.getItemList();
+          });
     }
 
-    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    notifyMessage(msg) 
+    {
+        this.refs.toast.show(msg);
+    }
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     getItemList = () =>
     {
@@ -369,6 +382,8 @@ export default class ItemList extends Component
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     addOneItem = (itemId) =>
     {
+        // Toast.show('Adding Quantity.', Toast.SHORT);
+        this.notifyMessage('Adding Quantity.')
         const serverCommunication = new ServerCommunication();
 
         serverCommunication.itemCommunication().changeOneItemQuantity(itemId, 1).then(updatedItem =>
@@ -384,11 +399,15 @@ export default class ItemList extends Component
                     }
                 }
 
+                // Toast.showWithGravity('Done', Toast.SHORT);
+
                 this.setState(tempItemList);
             })
     }
     removeOneItem = (itemId) =>
     {
+        // Toast.show('Reducing Quantity.', Toast.SHORT);
+        this.notifyMessage('Reducing Quantity.')
         const serverCommunication = new ServerCommunication();
 
         serverCommunication.itemCommunication().changeOneItemQuantity(itemId, -1).then(updatedItem =>
@@ -404,6 +423,7 @@ export default class ItemList extends Component
                 }
             }
 
+            // Toast.showWithGravity('Done', Toast.SHORT);
             this.setState(tempItemList);
         })
     }
@@ -525,71 +545,56 @@ export default class ItemList extends Component
     render()
     {
         return(
-            <View style={styles.itemListPageArea}>
-
-                {/* {this.state.createSellString === true ? 
-                    <View style="sellStringCreationArea">
-                        <SellString typeList={this.state.itemType} itemList={this.state.itemListCopy === null ? this.state.itemList : this.state.itemListCopy} closeFunction={this.openCLoseSellString}/>
-                    </View> 
-                    :
-                    null
-                } */}
-                
+            <View style={styles.itemListPageArea}>     
                 <View style={styles.selectionArea}>
                     <ListSelection filterList={this.state.itemType} orderList={orderList} filterValue={this.state.filterId} orderValue={this.state.orderId} searchFunction={this.searchItem} addFunction={this.addNewItem} filterFunction={this.filterItemList} orderFunction={this.orderItemList} openSellString={this.openCLoseSellString}/>
                 </View>
 
+                <View style={styles.itemManagementContent}>
+                    <View style={styles.listHeaderArea}>
+                        <ListHeader itemList={this.state.itemList}/>
+                    </View>
 
-                <View style="itemManagementArea">
-                    {/* <View style="itemManagementContent">
-                        {this.state.editTarget !== null ?  
-                            <View style="editAreaWapper">
-                                <EditItem isAddNew={this.state.addNew} target={this.state.editTarget} typeList={this.state.itemType} saveFunction={this.saveEdit} deleteFunction={this.deleteEdit} cancleFunction={this.cancleEdit} />
-                            </View>
-                            :
-                            null
-                        }
-                    </View> */}
-
-                    <View style="itemManagementContent">
-                        <View style="listInfoArea">
-                            <View style="listHeaderArea">
-                                <ListHeader itemList={this.state.itemList}/>
-                            </View>
-
-                            <View style={styles.listContentArea}>
-                                <ScrollView>
-                                    {this.state.itemList.map(item => <ListContent key={item.itemId} item={item} typeName={this.getItemTypeNameById(item.type)} addFunction={this.addOneItem} removeFunction={this.removeOneItem} openEdit={this.openEdit} />)}
-                                </ScrollView>
-                            </View>
-                        </View>
+                    <View style={styles.listContentArea}>
+                        <ScrollView>
+                            {this.state.itemList.map(item => <ListContent key={item.itemId} item={item} typeName={this.getItemTypeNameById(item.type)} addFunction={this.addOneItem} removeFunction={this.removeOneItem} openEdit={this.openEdit} navigationOption={() => this.props.navigation.navigate('EditPage', { target: item, typeList: this.state.itemType })}/>)}
+                        </ScrollView>
                     </View>
                 </View>
+                <Toast ref="toast"/>
             </View>
         )
     };
 }
+// contentContainerStyle={styles.listContentArea}
 
 const styles = StyleSheet.create(
     {
         itemListPageArea:
         {
             marginLeft: 15,
-            marginRight: 15
+            marginRight: 15,
+            flex: 1
         },
 
         selectionArea:
         {
+            flex: 0
+        },
+        itemManagementContent:
+        {
+            flex: 1
         },
 
         listHeaderArea:
         {
-            marginBottom: 5
+            marginBottom: 10,
         },
 
         listContentArea:
         {
-            height: "87%"
-        }
+            backgroundColor: "#edfaff",
+            marginBottom: 25
+        },
     }
 );
