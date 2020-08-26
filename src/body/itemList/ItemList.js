@@ -29,6 +29,7 @@ export default class ItemList extends Component
             itemList: [],
             itemType: [],
             itemListCopy: null,
+            searchName: "",
             editTarget: null,
             addNew: true,
             filterId: "-1",
@@ -38,11 +39,6 @@ export default class ItemList extends Component
 
         this.addOneItem = this.addOneItem.bind();
         this.removeOneItem = this.removeOneItem.bind();
-        this.openEdit = this.openEdit.bind();
-        this.cancleEdit = this.cancleEdit.bind();
-        this.saveEdit = this.saveEdit.bind();
-        this.deleteEdit = this.deleteEdit.bind();
-        this.openCLoseSellString = this.openCLoseSellString.bind();
     }
 
     componentDidMount()
@@ -52,7 +48,14 @@ export default class ItemList extends Component
 
         this._unsubscribe = this.props.navigation.addListener('focus', () => {
             // do something
-            this.getItemList();
+            // console.log(this.props.route.params)
+            // if(this.props.route.params && this.props.route.params.action !== "cancle")
+            // {
+            //     console.log("get new lsit");
+            //     this.getNewFilterList();
+            // }
+
+            this.getNewFilterList();
           });
     }
 
@@ -102,34 +105,22 @@ export default class ItemList extends Component
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    openCLoseSellString = () =>
-    {
-        this.setState(
-            {
-                createSellString: !this.state.createSellString
-            }
-        )
-    }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     searchItem = (searchName) =>
     {
-         if(searchName === "")
-         {
+        if(searchName === "")
+        {
             this.setState(
                 {
                     itemList: this.state.itemListCopy,
                     itemListCopy: null,
+                    searchName: ""
                 }
-            );
-         }
-         else
-         {
+        );
+        }
+        else
+        {
             let newItemList = [];
             let newItemListCopy;
 
@@ -141,7 +132,7 @@ export default class ItemList extends Component
             {
                 newItemListCopy = this.state.itemList;
             }
-            
+
 
             for(let index in newItemListCopy)
             {
@@ -155,7 +146,8 @@ export default class ItemList extends Component
             {
                 this.setState(
                     {
-                        itemList: newItemList
+                        itemList: newItemList,
+                        searchName: searchName
                     }
                 );
             }
@@ -164,12 +156,12 @@ export default class ItemList extends Component
                 this.setState(
                     {
                         itemList: newItemList,
-                        itemListCopy:newItemListCopy
+                        itemListCopy:newItemListCopy,
+                        searchName: searchName
                     }
                 );
             }
-            
-         }
+        }
     }
     addNewItem = () =>
     {
@@ -316,22 +308,17 @@ export default class ItemList extends Component
             {
                 serverCommunication.itemCommunication().getAllItemName().then(newItemList =>
                     {
-                        this.setState(
-                            {
-                                itemList: newItemList
-                            }
-                        )
-                })
+                        this.updateFilteredOrderedSearchedItemListState(newItemList)
+                    }
+                )
             }
             else
             {
-                serverCommunication.itemCommunication().getFilterNameItemList(this.state.filterId).then(newItemList =>{
-                    this.setState(
-                        {
-                            itemList: newItemList
-                        }
-                    )
-                })
+                serverCommunication.itemCommunication().getFilterNameItemList(this.state.filterId).then(newItemList =>
+                    {
+                        this.updateFilteredOrderedSearchedItemListState(newItemList)
+                    }
+                )
             }
             
         }
@@ -341,24 +328,41 @@ export default class ItemList extends Component
             {
                 serverCommunication.itemCommunication().getAllItemQuantity().then(newItemList =>
                     {
-                        this.setState(
-                            {
-                                itemList: newItemList
-                            }
-                        )
-                })
+                        this.updateFilteredOrderedSearchedItemListState(newItemList)
+                    }
+                )
             }
             else
             {
-                serverCommunication.itemCommunication().getFilterQuantityItemList(this.state.filterId).then(newItemList =>{
-                    this.setState(
-                        {
-                            itemList: newItemList
-                        }
-                    )
-                })
+                serverCommunication.itemCommunication().getFilterQuantityItemList(this.state.filterId).then(newItemList => 
+                    {
+                        this.updateFilteredOrderedSearchedItemListState(newItemList)
+                    }
+                )
             }
         }
+    }
+    updateFilteredOrderedSearchedItemListState = (newItemList) =>
+    {
+        if(this.state.searchName === "")
+        {
+            this.setState(
+                {
+                    itemList: newItemList
+                }
+            )
+        }
+        else
+        {
+            this.setState(
+                {
+                    itemListCopy: newItemList
+                }
+            )
+            this.searchItem(this.state.searchName)
+        }
+
+        
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -378,12 +382,11 @@ export default class ItemList extends Component
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     addOneItem = (itemId) =>
     {
         // Toast.show('Adding Quantity.', Toast.SHORT);
-        this.notifyMessage('Adding Quantity.')
+        this.notifyMessage('Adding Quantity')
         const serverCommunication = new ServerCommunication();
 
         serverCommunication.itemCommunication().changeOneItemQuantity(itemId, 1).then(updatedItem =>
@@ -407,7 +410,7 @@ export default class ItemList extends Component
     removeOneItem = (itemId) =>
     {
         // Toast.show('Reducing Quantity.', Toast.SHORT);
-        this.notifyMessage('Reducing Quantity.')
+        this.notifyMessage('Reducing Quantity')
         const serverCommunication = new ServerCommunication();
 
         serverCommunication.itemCommunication().changeOneItemQuantity(itemId, -1).then(updatedItem =>
@@ -426,118 +429,6 @@ export default class ItemList extends Component
             // Toast.showWithGravity('Done', Toast.SHORT);
             this.setState(tempItemList);
         })
-    }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    openEdit = (targetItem) =>
-    {
-        this.setState(
-            {
-                editTarget: targetItem,
-                addNew: false
-            }
-        )
-    }
-    cancleEdit = () =>
-    {
-        this.setState(
-            {
-                editTarget: {
-                    imageString: "",
-                    bprice: 0,
-                    eprice: 0,
-                    itemId: -1,
-                    name: "",
-                    quantity: 0,
-                    type: this.state.itemType[0].typeId,
-                },
-                addNew: true
-            }
-        )
-    }
-    saveEdit = (target,isAddNew) =>
-    {
-        const serverCommunication = new ServerCommunication();
-
-        if(isAddNew === false)
-        {
-            serverCommunication.itemCommunication().saveEdit(target).then(respond =>
-                {
-                    this.setState(
-                        {
-                            editTarget: {
-                                imageString: "",
-                                bprice: 0,
-                                eprice: 0,
-                                itemId: -1,
-                                name: "",
-                                quantity: 0,
-                                type: this.state.itemType[0].typeId,
-                            },
-                            addNew: true
-                        }
-                    );
-    
-                    this.getNewFilterList();
-                })
-                .catch(exception => {
-                    console.log(exception)
-                })
-        }
-        else
-        {
-            serverCommunication.itemCommunication().addNewItem(target).then(respond =>
-            {
-                this.setState(
-                    {
-                        editTarget: {
-                            imageString: "",
-                            bprice: 0,
-                            eprice: 0,
-                            itemId: -1,
-                            name: "",
-                            quantity: 0,
-                            type: this.state.itemType[0].typeId,
-                        },
-                        addNew: true
-                    }
-                );
-
-                this.getNewFilterList();
-            })
-            .catch(exception => {
-                console.log(exception)
-            })
-    }
-    }
-    deleteEdit = (targetId) =>
-    {
-        const serverCommunication = new ServerCommunication();
-
-        serverCommunication.itemCommunication().removeItem(targetId).then(respond =>
-            {
-                this.setState(
-                    {
-                        editTarget: {
-                            imageString: "",
-                            bprice: 0,
-                            eprice: 0,
-                            itemId: -1,
-                            name: "",
-                            quantity: 0,
-                            type: this.state.itemType[0].typeId,
-                        },
-                        addNew: true
-                    }
-                );
-
-                this.getItemList();
-            })
-            .catch(exception =>
-            {
-                console.log(exception)
-            })
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -566,7 +457,6 @@ export default class ItemList extends Component
         )
     };
 }
-// contentContainerStyle={styles.listContentArea}
 
 const styles = StyleSheet.create(
     {

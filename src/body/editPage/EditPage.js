@@ -1,19 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import { Button } from 'react-native-paper';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity } from 'react-native';
+import { Dropdown } from 'react-native-material-dropdown-v2';
+import Toast from 'react-native-easy-toast'
 
+import itemImage from "../../assets/220px-Warframe_Cover_Art.png";
+import ServerCommunication from "../../communication/serverCommunication";
 
-
-const orderList = [
-    {
-        orderId: 1,
-        orderName: "Name"
-    },
-    {
-        orderId: 2,
-        orderName:"Quantity"
-    }
-]
 export default class EditPage extends Component
 {
     constructor(props)
@@ -27,17 +19,17 @@ export default class EditPage extends Component
             itemId: -1,
             name: "",
             quantity: 0,
-            type: this.props.route.params.itemType[0].typeId,
+            type: props.route.params.typeList[0].typeId,
         };
 
-        if(this.props.route.params.target)
+        if(props.route.params.target)
         {
-            propsTarget = this.props.route.params.target
+            propsTarget = props.route.params.target
         }
 
         this.state = {
             target: propsTarget,
-            itemType: this.props.route.params.itemType,
+            itemType: props.route.params.typeList,
             itemTypeListTemplate: this.createItemTypeDropdownTemplate()
         }
     }
@@ -63,23 +55,23 @@ export default class EditPage extends Component
             this.setState(
                 {
                     target: propsTarget,
-                    itemType: this.props.route.params.itemType,
+                    itemType: this.props.route.params.typeList,
                     itemTypeListTemplate: this.createItemTypeDropdownTemplate()
                 }
             )
           });
     }
 
-    changeName = (event) =>
+    changeName = (value) =>
     {
         let tempTarget = {...this.state.target}
 
-        tempTarget.name = event.target.value;
+        tempTarget.name = value;
 
         let message = "";
         let itemCheck = true;
 
-        if (event.target.value === "")
+        if (value === "")
         {
             message = "Item name cannot be empty!";
             itemCheck = false;
@@ -94,13 +86,13 @@ export default class EditPage extends Component
         );
     }
 
-    changeQuantity = (event) =>
+    changeQuantity = (value) =>
     {
         let tempTarget = {...this.state.target}
 
-        if(event.target.value !== "")
+        if(value !== "")
         {
-            tempTarget.quantity = parseInt(event.target.value, 10);
+            tempTarget.quantity = parseInt(value, 10);
         }
         else
         {
@@ -114,13 +106,13 @@ export default class EditPage extends Component
         );
     }
 
-    changeEPrice = (event) =>
+    changeEPrice = (value) =>
     {
         let tempTarget = {...this.state.target}
 
-        if(event.target.value !== "")
+        if(value !== "")
         {
-            tempTarget.eprice = parseInt(event.target.value, 10);
+            tempTarget.eprice = parseInt(value, 10);
         }
         else
         {
@@ -134,13 +126,13 @@ export default class EditPage extends Component
         );
     }
 
-    changeBPrice = (event) =>
+    changeBPrice = (value) =>
     {
         let tempTarget = {...this.state.target}
 
-        if(event.target.value !== "")
+        if(value !== "")
         {
-            tempTarget.bprice = parseInt(event.target.value, 10);
+            tempTarget.bprice = parseInt(value, 10);
         }
         else
         {
@@ -154,11 +146,11 @@ export default class EditPage extends Component
         );
     }
 
-    changeType = (event) =>
+    changeType = (value) =>
     {
         let tempTarget = {...this.state.target}
 
-        tempTarget.type = event.target.value;
+        tempTarget.type = value;
 
         this.setState(
             {
@@ -222,40 +214,96 @@ export default class EditPage extends Component
     createItemTypeDropdownTemplate()
     {
         let itemTypeListTemplate = [];
-        for(let index = 0; index < this.props.route.params.itemType.length; index ++)
+        for(let index = 0; index < this.props.route.params.typeList.length; index ++)
         {
             itemTypeListTemplate.push(
                 {
-                    label: this.props.route.params.itemType[index].typeName,
-                    value: this.props.route.params.itemType[index].typeId,
+                    label: this.props.route.params.typeList[index].typeName,
+                    value: this.props.route.params.typeList[index].typeId,
                 }
             );
         }
         
         return itemTypeListTemplate;
     }
+    notifyMessage(msg) 
+    {
+        this.refs.toast.show(msg);
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    cancleEdit = () =>
+    {
+        // console.log(this.props.navigation);
+        this.props.navigation.goBack();
+        // this.props.navigation.navigate("ItemList", {action: "cancle"});
+    }
+    saveEdit = () =>
+    {
+        this.notifyMessage("Saving");
+
+        const serverCommunication = new ServerCommunication();
+
+        if(this.state.target.itemId !== -1)
+        {
+            serverCommunication.itemCommunication().saveEdit(this.state.target).then(() =>
+                {
+                    this.props.navigation.goBack();
+                })
+                .catch(exception => {
+                    console.log(exception)
+                })
+        }
+        else
+        {
+            serverCommunication.itemCommunication().addNewItem(target).then(() =>
+            {
+                this.props.navigation.goBack();
+            })
+            .catch(exception => {
+                console.log(exception)
+            })
+    }
+    }
+    deleteEdit = () =>
+    {
+        this.notifyMessage("Deleting");
+        const serverCommunication = new ServerCommunication();
+
+        serverCommunication.itemCommunication().removeItem(this.state.target.itemId).then(() =>
+            {
+                this.props.navigation.goBack();
+            })
+            .catch(exception =>
+            {
+                console.log(exception)
+            })
+    }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     render()
     {
         return(
             <View style="editArea">
-                <View style="titleArea">
-                    <Text style="titleStyle">{this.state.target !== -1 ? "Edit Item" : "Add Item"}</Text>
+                <View style={styles.titleArea}>
+                    <Text style={styles.titleStyle}>{this.state.target !== -1 ? "Edit Item" : "Add Item"}</Text>
                 </View>
 
-                <View style="topArea">
+                <View style={styles.topArea}>
                     {/* <input type="file" ref={imageInput => this.imageInput = imageInput} accept=".jpg, .png" multiple={false} onChange={(event) => {this.fileChange(event)}} style={{display: "none"}}/> */}
                     
-                    {/* <View style="itemImageArea">
-                        <img src={this.state.target.imageString !== "" ? "data:image/png;base64," + this.state.target.imageString : itemImage} ref={imageView => this.imageView = imageView} onClick={() => {this.changeImage()}} alt="Item"/>
-                    </View> */}
+                    <View style={styles.itemImageArea}>
+                        <Image style={styles.imageSize} source={this.state.target.imageString !== "" ? "data:image/png;base64," + this.state.target.imageString : itemImage} alt="item" />
+                        {/* <img src={this.state.target.imageString !== "" ? "data:image/png;base64," + this.state.target.imageString : itemImage} ref={imageView => this.imageView = imageView} onClick={() => {this.changeImage()}} alt="Item"/> */}
+                    </View>
 
                     <View style="nameQuantityArea">
-                        <Text style="tagStyle, errorMessage">{this.state.errorMessage}</Text>
+                        <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
 
-                        <View style="editFieldArea">
-                            <Text style="tagStyle">Item name: </Text>
+                        <View style={styles.editFieldArea}>
+                            <Text style={styles.tagStyle}>Item name: </Text>
                             <TextInput
                                 style={styles.textBoxContentStyle}
                                 value={this.state.target.name}
@@ -266,11 +314,11 @@ export default class EditPage extends Component
                             {/* <input type="text" placeholder="Item Name" value={this.state.target.name} onChange={(event) => {this.changeName(event)}}/> */}
                         </View>
 
-                        <View style="editFieldArea">
-                            <Text style="tagStyle">Item quantity: </Text>
+                        <View style={styles.editFieldArea}>
+                            <Text style={styles.tagStyle}>Item quantity: </Text>
                             <TextInput
                                 style={styles.textBoxContentStyle}
-                                value={this.state.target.name}
+                                value={this.state.target.quantity.toString()}
                                 keyboardType="number-pad"
                                 placeholderTextColor = "#0394fc"
                                 autoCapitalize = "none"
@@ -281,12 +329,11 @@ export default class EditPage extends Component
                 </View>
     
                 <View style="midArea">
-                    <View style="editFieldArea">
-                        <Text style="tagStyle">Item type: </Text>
+                    <View style={styles.editFieldArea}>
                         <Dropdown
                             label="Item Type:"
                             data={this.state.itemTypeListTemplate}
-                            value={props.filterValue}
+                            value={this.state.target.type}
 
                             textColor="#000000"
                             itemColor="#005875"
@@ -300,33 +347,194 @@ export default class EditPage extends Component
                         </select> */}
                     </View>
                     
-                    <View style="editFieldArea">
-                        <Text style="tagStyle">Exceptected price: </Text>
-                        <input type="number" value={Number(this.state.target.eprice).toString()} onChange={(event) => {this.changeEPrice(event)}} min="0"/>
+                    <View style={styles.editFieldArea}>
+                        <Text style={styles.tagStyle}>Exceptected price: </Text>
+                        <TextInput
+                            style={styles.textBoxContentStyle}
+                            value={this.state.target.eprice.toString()}
+                            keyboardType="number-pad"
+                            placeholderTextColor = "#0394fc"
+                            autoCapitalize = "none"
+                            onChangeText ={(text) => {this.changeEPrice(text)}}/>
+                        {/* <input type="number" value={Number(this.state.target.eprice).toString()} onChange={(event) => {this.changeEPrice(event)}} min="0"/> */}
                     </View>
 
-                    <View style="editFieldArea">
-                        <Text style="tagStyle">Base price: </Text>
-                        <input type="number" value={Number(this.state.target.bprice).toString()} onChange={(event) => {this.changeBPrice(event)}} min="0"/>
+                    <View style={styles.editFieldArea}>
+                        <Text style={styles.tagStyle}>Base price: </Text>
+                        <TextInput
+                            style={styles.textBoxContentStyle}
+                            value={this.state.target.bprice.toString()}
+                            keyboardType="number-pad"
+                            placeholderTextColor = "#0394fc"
+                            autoCapitalize = "none"
+                            onChangeText ={(text) => {this.changeBPrice(text)}}/>
+                        {/* <input type="number" value={Number(this.state.target.bprice).toString()} onChange={(event) => {this.changeBPrice(event)}} min="0"/> */}
                     </View>
                 </View>
     
-                <View style="bottomArea">
-                    {this.state.target !== -1 ? <button style="warningButton" onClick={() => {this.props.deleteFunction(this.state.target.itemId)}}>Delete</button> : null}
-                    <View style="saveCancleArea">
-                        <button style="normalButton" onClick={() => {this.setState({errorMessage: ""}); this.props.cancleFunction()}}>Cancle</button>
+                <View style={styles.bottomArea}>
+                    {this.state.target !== -1 ?
+                        <TouchableOpacity style={[styles.buttonSize, styles.deleteButton]} activeOpacity={0.5} onPress={() => {this.setState({errorMessage: ""}); this.deleteEdit()}}>
+                            <Text style={styles.buttonTextStyle}>Delete</Text>
+                        </TouchableOpacity>
+                    :
+                    null}
+                    {/* {this.state.target !== -1 ? <Button title="Delete" color="#ff0000" onClick={() => {this.props.deleteFunction(this.state.target.itemId)}}/> : null} */}
+                    <View style={styles.saveCancleArea}>
+                        <TouchableOpacity style={[styles.buttonSize, styles.cancleButton]} activeOpacity={0.5} onPress={() => {this.setState({errorMessage: ""}); this.cancleEdit()}}>
+                            <Text style={styles.buttonTextStyle}>Cancle</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.buttonSize, styles.saveButton]} activeOpacity={0.5} onPress={() => {this.setState({errorMessage: ""}); this.saveEdit()}}>
+                            <Text style={styles.buttonTextStyle}>Save</Text>
+                        </TouchableOpacity>
                         
-                        {this.state.goodItem === false ? <button style="normalButton" onClick={() => {this.setState({errorMessage: "Item name cannot be empty!"});}}>Save</button> : <button style="normalButton" onClick={() => {this.props.saveFunction(this.state.target, this.props.isAddNew)}}>Save</button>}
+                        {/* {this.state.goodItem === false ? <Button title="Save" onClick={() => {this.setState({errorMessage: "Item name cannot be empty!"});}}></Button> : <Button title="Save" onClick={() => {this.props.saveFunction(this.state.target, this.props.isAddNew)}}></Button>} */}
                     </View>
                 </View>
+                <Toast ref="toast"/>
             </View>
         )
     };
 }
-// contentContainerStyle={styles.listContentArea}
 
 const styles = StyleSheet.create(
     {
+        titleArea:
+        {
+            alignItems: "center",
+            marginBottom: 10,
+        },
+        titleStyle:
+        {
+            fontSize: 25,
+            fontWeight: "bold",
+        },
 
+
+        itemImageArea:
+        {
+            alignItems: "center",
+        },
+        imageSize:
+        {
+            width: 150,
+            height: 150
+        },
+
+
+        tagStyle:
+        {
+            width : "40%",
+            fontWeight: "bold",
+            fontSize: 18
+        },
+        errorMessage:
+        {
+            color: "#ff0019",
+            fontWeight: "bold",
+            fontSize: 15,
+            width: "100%",
+            textAlign: "center"
+        },
+
+        editFieldArea:
+        {
+            marginTop: 5,
+            marginBottom: 5,
+            flexDirection: "row",
+            justifyContent: "space-around",
+        },
+
+        textBoxContentStyle:
+        {
+            backgroundColor: "#ffffff",
+            color: "#000000",
+            borderRadius: 12,
+            borderColor: "#0084ff",
+
+            borderStyle: "solid",
+            borderWidth: 1,
+
+            paddingLeft: 5,
+            paddingRight: 5,
+
+            width: "50%",
+            fontSize: 18
+        },
+
+        dropdownBoxStyle:
+        {
+            width: "80%"
+        },
+        dropDownListStyle:
+        {
+        },
+
+
+
+        bottomArea:
+        {
+            marginTop: 20,
+            flexDirection: "column",
+            alignItems: "center"
+        },
+
+
+        saveCancleArea:
+        {
+            marginTop: 20,
+
+            flexDirection: "row",
+            justifyContent: "space-around",
+            width: "100%"
+        },
+
+        buttonTextStyle:
+        {
+            fontSize: 20,
+            textAlign: "center"
+        },
+        buttonSize:
+        {
+            width: "40%",
+            padding: 5,
+        },
+        saveButton:
+        {
+            backgroundColor: "#ffffff",
+
+            color: "#000000",
+
+            borderRadius: 12,
+            borderColor: "#00ffbf",
+
+            borderStyle: "solid",
+            borderWidth: 3,
+        },
+        cancleButton:
+        {
+            backgroundColor: "#ffffff",
+
+            color: "#000000",
+
+            borderRadius: 12,
+            borderColor: "#0084ff",
+
+            borderStyle: "solid",
+            borderWidth: 3,
+        },
+        deleteButton:
+        {
+            backgroundColor: "#ffffff",
+
+            color: "#000000",
+
+            borderRadius: 12,
+            borderColor: "#ff0000",
+
+            borderStyle: "solid",
+            borderWidth: 3,
+        }
     }
 );

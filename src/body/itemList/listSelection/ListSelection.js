@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, View, TextInput } from 'react-native';
 import { Dropdown } from 'react-native-material-dropdown-v2';
 
 export default function ListSelection(props) 
